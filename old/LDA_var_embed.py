@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
-class LDA_gibbs:
+class LDA_gibbs_var:
     def __init__(self, docs, vocab, n_topic, random_state=0):
         self.V = len(vocab)  # size of vocab
         self.k = n_topic  # number of topics
@@ -39,8 +39,24 @@ class LDA_gibbs:
             prob[i] = _1 * _2
         return prob / prob.sum()
     #
-    def run_gibbs(self, n_gibbs=2000):
+    def _calculate_beta(self):
+        beta = np.empty((self.k, self.V))
+        for j in range(self.V):
+            for i in range(self.k):
+                beta[i, j] = (self.n_iw[i, j] + self.eta) / (self.n_iw[i, :].sum() + self.V * self.eta)
+        return beta
+    #
+    def _calculate_theta(self):
+        theta = np.empty((self.M, self.k))
+        for d in range(self.M):
+            for i in range(self.k):
+                theta[d, i] = (self.n_di[d, i] + self.alpha) / (self.n_di[d, :].sum() + self.k * self.alpha)
+        return theta
+    #
+    def run_gibbs(self, n_gibbs=2000,burn_in=500, sample_interval=10):
         self._init_gibbs(n_gibbs)
+        beta_samples = []
+        theta_samples = []
 
         print(f"V: {self.V}\nk: {self.k}\nN: {self.N[:10]}...\nM: {self.M}")
         print(f"alpha: {self.alpha}\n_eta: {self.eta}")
@@ -59,8 +75,14 @@ class LDA_gibbs:
                     self.n_iw[i_tp1, w_dn] += 1
                     self.n_di[d, i_tp1] += 1
                     self.assign[d, n, t + 1] = i_tp1
+
+            if t > burn_in and (t - burn_in) % sample_interval == 0:
+                beta_samples.append(self._calculate_beta())
+                theta_samples.append(self._calculate_theta())
+            
             if ((t + 1) % 50 == 0):
                 print(f"Sampled {t + 1}/{n_gibbs}")
+        return beta_samples, theta_samples
     #          
     def sample(self):
         beta = np.empty((self.k,self.V))
@@ -73,10 +95,10 @@ class LDA_gibbs:
         for d in range(self.M):
             for i in range(self.k):
                 theta[d, i] = (self.n_di[d, i] + self.alpha) / (self.n_di[d, :].sum() + self.k*self.alpha)
-        return beta,theta
+        return beta
     #
 #
-class LDA_word_embed:
+class LDA_word_embed_v:
     def __init__(self, docs, vocab, n_topic, word_embeddings, random_state=0):
         self.V = len(vocab)  # size of vocab
         self.k = n_topic  # number of topics
@@ -133,8 +155,10 @@ class LDA_word_embed:
                 prob[i] = _1 * _2
         return prob / prob.sum()
     #
-    def run_gibbs(self, n_gibbs=2000):
+    def run_gibbs(self, n_gibbs=2000,burn_in=500, sample_interval=10):
         self._init_gibbs(n_gibbs)
+        beta_samples = []
+        theta_samples = []
 
         print(f"V: {self.V}\nk: {self.k}\nN: {self.N[:10]}...\nM: {self.M}")
         print(f"alpha: {self.alpha}\n_eta: {self.eta}")
@@ -154,8 +178,13 @@ class LDA_word_embed:
                     self.n_iw[i_tp1, w_dn] += 1
                     self.n_di[d, i_tp1] += 1
                     self.assign[d, n, t + 1] = i_tp1
+            if t > burn_in and (t - burn_in) % sample_interval == 0:
+                beta_samples.append(self._calculate_beta())
+                theta_samples.append(self._calculate_theta())
+            
             if ((t + 1) % 50 == 0):
                 print(f"Sampled {t + 1}/{n_gibbs}")
+        return beta_samples, theta_samples
     #          
     def sample(self):
         beta = np.empty((self.k,self.V))
@@ -168,6 +197,6 @@ class LDA_word_embed:
         for d in range(self.M):
             for i in range(self.k):
                 theta[d, i] = (self.n_di[d, i] + self.alpha) / (self.n_di[d, :].sum() + self.k*self.alpha)
-        return beta, theta
+        return beta,theta
     #
 #
