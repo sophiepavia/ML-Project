@@ -22,8 +22,7 @@ After installing the NLTK package, please do install the necessary datasets/mode
 On the command line type python -m nltk.downloader reuters, or in the Python interpreter import nltk; nltk.download('reuters')
 
 ## Executing 
-Simply run notebook for model of choice. There are pickle files that also have models saved
-
+Simply run notebook for model of choice.
 - LDA without Word Embeddings:
 
 ```bash
