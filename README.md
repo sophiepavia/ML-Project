@@ -39,3 +39,8 @@ LDA-gibbs-wordEmbed.ipynb
 ```
 LDA.py
 ```
+
+## Resources
+https://naturale0.github.io/2021/02/16/LDA-4-Gibbs-Sampling
+
+https://medium.com/@datastories/parameter-estimation-for-latent-dirichlet-allocation-explained-with-collapsed-gibbs-sampling-in-1d2ec78b64c
